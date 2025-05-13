@@ -17,10 +17,14 @@ final class PDFService
 
     public function __construct(string $reportsDirectory = 'reports')
     {
-        $this->converter = new CommonMarkConverter(
-            ['html_input' => 'allow', 'allow_unsafe_links' => false],
-            [new TableExtension()]
-        );
+        // create converter first
+        $this->converter = new CommonMarkConverter([
+            'html_input'        => 'allow',
+            'allow_unsafe_links'=> false,
+        ]);
+
+        // then register the extension
+        $this->converter->getEnvironment()->addExtension(new TableExtension());
         
         $options = new Options();
         $options->set('defaultFont', 'Helvetica');

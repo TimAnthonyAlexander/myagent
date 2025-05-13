@@ -21,16 +21,65 @@ final class Agent
     private PDFService $pdfService;
     private array $config;
     private bool $conversationActive = false;
+    private string $apiKey = '';
 
-    public function __construct()
+    public function __construct(?string $apiKey = null)
     {
         $this->loadConfig();
+
         $this->gpt = new GPT('default');
         $this->searchGpt = new GPT('search');
         $this->thinkingGpt = new GPT('thinking');
+
+        // Set API key if provided
+        if ($apiKey !== null) {
+            $this->setApiKey($apiKey);
+        } else {
+            // Try to load from config file
+            $this->loadApiKey();
+        }
         $this->memory = new Memory();
         $this->evaluator = new Evaluator();
         $this->pdfService = new PDFService();
+    }
+
+    /**
+     * Set the OpenAI API key
+     *
+     * @param string $apiKey
+     * @return self
+     */
+    public function setApiKey(string $apiKey): self
+    {
+        $this->apiKey = $apiKey;
+
+        // Update API key in GPT instances
+        $this->gpt->setApiKey($apiKey);
+        $this->searchGpt->setApiKey($apiKey);
+        $this->thinkingGpt->setApiKey($apiKey);
+
+        return $this;
+    }
+
+    /**
+     * Load API key from config file
+     */
+    private function loadApiKey(): void
+    {
+        $apiKeyFile = __DIR__ . '/../../config/openai.txt';
+
+        if (file_exists($apiKeyFile)) {
+            $this->apiKey = trim(file_get_contents($apiKeyFile));
+
+            // Update API key in GPT instances
+            $this->gpt->setApiKey($this->apiKey);
+            $this->searchGpt->setApiKey($this->apiKey);
+            $this->thinkingGpt->setApiKey($this->apiKey);
+        } else {
+            throw new \RuntimeException(
+                "OpenAI API key not found. Please set it using setApiKey() or create a config/openai.txt file."
+            );
+        }
     }
 
     private function loadConfig(): void
@@ -247,14 +296,14 @@ final class Agent
 
         $this->gpt->send($finalPrompt);
         $finalReport = $this->gpt->response->content;
-        
+
         // Save the report as a PDF
         $title = "Report: " . $task->getDescription();
         $fileName = "task_report_" . md5($task->getDescription());
         $pdfPath = $this->pdfService->convertAndSave($finalReport, $title, $fileName);
-        
+
         echo "Report saved as PDF: $pdfPath\n";
-        
+
         return $finalReport;
     }
 }

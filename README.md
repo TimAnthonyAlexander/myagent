@@ -19,6 +19,14 @@ MyAgent is a sophisticated PHP-based autonomous agent that uses recursive intell
 
 ## 🚀 Installation
 
+### As a Composer Package
+
+```bash
+composer require tim.alexander/myagent
+```
+
+### From Source
+
 1. Clone the repository:
    ```bash
    git clone https://github.com/TimAnthonyAlexander/myagent.git
@@ -30,10 +38,23 @@ MyAgent is a sophisticated PHP-based autonomous agent that uses recursive intell
    composer install
    ```
 
-3. Configure your OpenAI API key:
+3. Configure your OpenAI API key (one of these methods):
+   
+   a. Create a config file:
    ```bash
    mkdir -p config
    echo "your-openai-api-key" > config/openai.txt
+   ```
+   
+   b. Pass it as a command line argument:
+   ```bash
+   php public/runagent.php --api-key=your-openai-api-key "Your task"
+   ```
+   
+   c. Set it programmatically:
+   ```php
+   $agent = new Agent();
+   $agent->setApiKey('your-openai-api-key');
    ```
 
 4. Configure models (optional):
@@ -44,10 +65,34 @@ MyAgent is a sophisticated PHP-based autonomous agent that uses recursive intell
 
 ## 💻 Usage
 
+### Basic Usage
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use TimAlexander\Myagent\Agent\Agent;
+
+// Create agent with API key
+$agent = new Agent('your-openai-api-key');
+// Or set it later
+// $agent->setApiKey('your-openai-api-key');
+
+// Run a task
+$agent->run("Generate a comprehensive marketing plan for a new mobile app");
+```
+
+### Command Line
+
 Run the agent with your task description:
 
 ```bash
+# Using API key from config file
 php public/runagent.php "Generate a comprehensive marketing plan for a new mobile app"
+
+# Or specify API key directly
+php public/runagent.php --api-key=your-openai-api-key "Generate a comprehensive marketing plan for a new mobile app"
 ```
 
 You can also run without arguments to be prompted for input:

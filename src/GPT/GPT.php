@@ -20,6 +20,8 @@ final class GPT
     public float $inCost  = 0;
     public float $outCost = 0;
 
+    private string $apiKey = '';
+
     public function __construct(
         public string $model = 'default',
         public bool $useOpenRouter = false,
@@ -51,6 +53,18 @@ final class GPT
         } else {
             die("Error: Configuration file models.json not found. Please create it in the config directory.\n");
         }
+    }
+
+    /**
+     * Set the OpenAI API key
+     *
+     * @param string $apiKey
+     * @return self
+     */
+    public function setApiKey(string $apiKey): self
+    {
+        $this->apiKey = $apiKey;
+        return $this;
     }
 
     public function send(
@@ -109,8 +123,18 @@ final class GPT
 
         $curl = curl_init();
 
-        $file = __DIR__ . '/../../config/openai.txt';
         $api = self::$config['api']['endpoint'];
+
+        // Use API key from instance if set, otherwise try to load from file
+        $apiKey = $this->apiKey;
+        if (empty($apiKey)) {
+            $apiKeyFile = __DIR__ . '/../../config/openai.txt';
+            if (file_exists($apiKeyFile)) {
+                $apiKey = trim(file_get_contents($apiKeyFile));
+            } else {
+                throw new \RuntimeException("OpenAI API key not found. Please set it using setApiKey() or create a config/openai.txt file.");
+            }
+        }
 
         curl_setopt_array(
             $curl,
@@ -122,7 +146,7 @@ final class GPT
                 CURLOPT_POSTFIELDS     => $json,
                 CURLOPT_HTTPHEADER     => [
                     'Content-Type: application/json',
-                    'Authorization: Bearer ' . trim((string) file_get_contents($file)),
+                    'Authorization: Bearer ' . $apiKey,
                 ],
                 CURLOPT_CONNECTTIMEOUT_MS => self::$config['api']['timeout_ms'],
             ]

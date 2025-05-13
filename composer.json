@@ -1,5 +1,8 @@
 {
     "name": "tim.alexander/myagent",
+    "description": "An intelligent PHP agent that uses recursive intelligence and iterative refinement to solve complex tasks",
+    "type": "library",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "TimAlexander\\Myagent\\": "src/"
@@ -12,8 +15,26 @@
         }
     ],
     "require": {
+        "php": "^8.1",
         "league/commonmark": "^2.7",
         "dompdf/dompdf": "^3.1",
         "league/commonmark-ext-table": "^0.1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
+    },
+    "minimum-stability": "stable",
+    "keywords": [
+        "ai",
+        "agent",
+        "gpt",
+        "openai",
+        "task-solver",
+        "intelligent-agent"
+    ],
+    "homepage": "https://github.com/TimAnthonyAlexander/myagent",
+    "support": {
+        "issues": "https://github.com/TimAnthonyAlexander/myagent/issues",
+        "source": "https://github.com/TimAnthonyAlexander/myagent"
     }
 }

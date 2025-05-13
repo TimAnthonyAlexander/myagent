@@ -82,19 +82,38 @@ $agent = new Agent('your-openai-api-key');
 // Or set it later
 // $agent->setApiKey('your-openai-api-key');
 
-// Run a task with automatic context gathering
+// Run a task with automatic context gathering (interactive mode)
+$agent = new Agent('your-openai-api-key', interactive: true);
 $agent->run("Generate a comprehensive marketing plan for a new mobile app");
 
-// Or provide context directly
+// Or provide context directly (non-interactive mode)
+$agent = new Agent('your-openai-api-key', interactive: false);
 $context = "The app is a fitness tracker targeting young professionals. Budget is $50k for marketing. Need to focus on social media and influencer marketing.";
-$agent->run("Generate a comprehensive marketing plan for a new mobile app", $context);
+$result = $agent->run("Generate a comprehensive marketing plan for a new mobile app", $context);
+
+// Access the results
+echo $result->final_result->report; // The generated report in Markdown
+echo $result->final_result->pdf_path; // Path to the generated PDF
+```
+
+The `run()` method returns a `stdClass` object with the following structure:
+```php
+{
+    "task": Task,           // The Task object containing the original task and metadata
+    "memory": Memory,       // The Memory object containing all gathered information
+    "final_result": {       // Present if task completed successfully
+        "report": string,   // The final report in Markdown format
+        "pdf_path": string  // Full path to the generated PDF file
+    },
+    "best_solution": string // Present if task didn't reach target score
+}
 ```
 
 When you run a task, the agent will:
 
 1. If no context is provided:
-   - Ask you clarifying questions to gather more context about your task
-   - You'll need to provide answers to these questions (they help the agent understand your requirements better)
+   - In interactive mode: Ask you clarifying questions to gather more context
+   - In non-interactive mode: Skip the questions phase
 2. If context is provided:
    - Skip the interactive questions phase
    - Use the provided context directly
@@ -107,7 +126,7 @@ When you run a task, the agent will:
 
 ### Command Line
 
-Run the agent with your task description:
+The command-line interface always uses interactive mode:
 
 ```bash
 # Using API key from config file
@@ -132,7 +151,7 @@ After entering your task, the agent will:
 
 ### Follow-up Questions
 
-After the task is completed, you can ask follow-up questions about the solution. The agent maintains context from the original task and can provide additional insights or clarifications. Type 'exit' to end the conversation.
+After the task is completed in interactive mode, you can ask follow-up questions about the solution. The agent maintains context from the original task and can provide additional insights or clarifications. Type 'exit' to end the conversation.
 
 ## ⚙️ Configuration
 

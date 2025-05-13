@@ -58,6 +58,10 @@ final class Agent
         echo "Starting task: {$task->getDescription()}\n";
 
         $this->memory->storeTask($task);
+
+        // Gather initial context through follow-up questions before starting attempts
+        $this->gatherInitialTaskContext($task);
+
         $completionScore = 0;
         $attempts = 0;
         $maxAttempts = $this->config['execution']['max_attempts'];
@@ -65,7 +69,6 @@ final class Agent
 
         while ($completionScore < $targetScore && $attempts < $maxAttempts) {
             $attempts++;
-            echo "\nAttempt $attempts of $maxAttempts\n";
 
             // Search for relevant information
             $searchPrompt = $this->createSearchPrompt($task, $this->memory);
@@ -111,6 +114,47 @@ final class Agent
         $this->startFollowUpConversation();
     }
 
+    private function gatherInitialTaskContext(Task $task): void
+    {
+        echo "\nGenerating preliminary questions to gather more context about your task...\n";
+
+        // Create a prompt for thinkingGpt to generate follow-up questions
+        $questionsPrompt = new GPTMessageModel();
+        $questionsPrompt->role = 'user';
+        $questionsPrompt->content = sprintf(
+            "Based on this task description: \"%s\"\n\nGenerate at least 5 specific follow-up questions that would help clarify important details, scope, requirements, or context needed to effectively complete this task. These questions should help gather essential information that might be missing from the initial description.",
+            $task->getDescription()
+        );
+
+        // Get the follow-up questions
+        $this->thinkingGpt->send($questionsPrompt);
+        $questions = $this->thinkingGpt->response->content;
+
+        // Display the questions to the user
+        echo "\n$questions\n\n";
+
+        // Ask the user to provide answers
+        echo "Please provide your answers to these questions (type your response and press Enter):\n";
+        $userAnswers = "";
+
+        // Read multiline input until an empty line is entered
+        echo "> ";
+        while (($line = trim(fgets(STDIN))) !== "") {
+            $userAnswers .= $line . "\n";
+            echo "> ";
+        }
+
+        // Store this additional context in memory
+        $contextWithAnswers = "FOLLOW-UP QUESTIONS:\n$questions\n\nUSER ANSWERS:\n$userAnswers";
+        $this->memory->storeSearchResults($contextWithAnswers);
+
+        // Update task metadata with this additional context
+        $task->addMetadata('initial_context_questions', $questions);
+        $task->addMetadata('initial_context_answers', $userAnswers);
+
+        echo "\nThank you for providing additional context. Starting the solution process...\n";
+    }
+
     private function startFollowUpConversation(): void
     {
         $this->conversationActive = true;
@@ -136,7 +180,7 @@ final class Agent
         // Store the question as a related task
         $task = $this->memory->getCurrentTask();
         $followUpTask = new Task($question, ['parent_task' => $task->getDescription()]);
-        
+
         // Create a prompt that leverages the current memory context
         $followUpPrompt = new GPTMessageModel();
         $followUpPrompt->role = 'user';
@@ -151,11 +195,11 @@ final class Agent
 
         $this->gpt->send($followUpPrompt);
         $response = $this->gpt->response->content;
-        
+
         // Store this follow-up interaction in memory for future reference
         $this->memory->storeSearchResults("Follow-up question: $question");
         $this->memory->storeApproach("Follow-up response: $response");
-        
+
         return $response;
     }
 

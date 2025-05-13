@@ -18,6 +18,7 @@ final class Agent
     private Memory $memory;
     private Evaluator $evaluator;
     private array $config;
+    private bool $conversationActive = false;
 
     public function __construct()
     {
@@ -105,6 +106,57 @@ final class Agent
             $bestSolution = $this->memory->getBestApproach();
             echo $bestSolution . "\n";
         }
+
+        // Enable follow-up conversation after task completion
+        $this->startFollowUpConversation();
+    }
+
+    private function startFollowUpConversation(): void
+    {
+        $this->conversationActive = true;
+        echo "\nYou can ask follow-up questions or type 'exit' to end the conversation.\n";
+
+        while ($this->conversationActive) {
+            echo "\nYour question: ";
+            $question = trim(fgets(STDIN));
+
+            if (strtolower($question) === 'exit') {
+                $this->conversationActive = false;
+                echo "Conversation ended.\n";
+                break;
+            }
+
+            $response = $this->handleFollowUpQuestion($question);
+            echo "\nResponse:\n$response\n";
+        }
+    }
+
+    private function handleFollowUpQuestion(string $question): string
+    {
+        // Store the question as a related task
+        $task = $this->memory->getCurrentTask();
+        $followUpTask = new Task($question, ['parent_task' => $task->getDescription()]);
+        
+        // Create a prompt that leverages the current memory context
+        $followUpPrompt = new GPTMessageModel();
+        $followUpPrompt->role = 'user';
+        $followUpPrompt->content = sprintf(
+            "Original task: %s\n\nFollow-up question: %s\n\nUse the following context to answer the question:\n- Search results: %s\n- Previous approaches: %s\n- Previous feedback: %s",
+            $task->getDescription(),
+            $question,
+            $this->memory->getRelevantContextSummary(),
+            $this->memory->getBestApproach(),
+            $this->memory->getLastFeedback() ?? "None"
+        );
+
+        $this->gpt->send($followUpPrompt);
+        $response = $this->gpt->response->content;
+        
+        // Store this follow-up interaction in memory for future reference
+        $this->memory->storeSearchResults("Follow-up question: $question");
+        $this->memory->storeApproach("Follow-up response: $response");
+        
+        return $response;
     }
 
     private function createSearchPrompt(Task $task, Memory $memory): GPTMessageModel

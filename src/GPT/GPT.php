@@ -12,14 +12,6 @@ set_time_limit(0);
 
 final class GPT
 {
-    // Constants kept for backward compatibility
-    public const MODEL               = 'gpt-4.1-mini';
-    public const SUPERMODEL          = 'gpt-4.1';
-    public const SEARCHMODEL         = 'gpt-4o-mini-search-preview';
-    public const THINKING            = 'o4-mini';
-    public const THINKING_SUPERMODEL = 'o1';
-    public const API                 = 'https://api.openai.com/v1/chat/completions';
-
     private static array $config;
     
     public GPTMessageModel $response;
@@ -29,7 +21,7 @@ final class GPT
     public float $outCost = 0;
 
     public function __construct(
-        public string $model = self::MODEL,
+        public string $model = 'default',
         public bool $useOpenRouter = false,
     ) {
         // Load config if not already loaded
@@ -37,17 +29,11 @@ final class GPT
             $this->loadConfig();
         }
         
-        // Override model if it matches a preset in the config
-        if ($model === self::MODEL) {
-            $this->model = self::$config['models']['default'];
-        } elseif ($model === self::SUPERMODEL) {
-            $this->model = self::$config['models']['evaluation'];
-        } elseif ($model === self::SEARCHMODEL) {
-            $this->model = self::$config['models']['search'];
-        } elseif ($model === self::THINKING) {
-            $this->model = self::$config['models']['thinking'];
-        } elseif ($model === self::THINKING_SUPERMODEL) {
-            $this->model = self::$config['models']['thinking_advanced'];
+        // Map model identifier to actual model from config
+        if ($model === 'default' || $model === 'evaluation' || 
+            $model === 'search' || $model === 'thinking' || 
+            $model === 'thinking_advanced') {
+            $this->model = self::$config['models'][$model];
         }
     }
     
@@ -60,40 +46,11 @@ final class GPT
                 $jsonConfig = file_get_contents($configFile);
                 self::$config = json_decode($jsonConfig, true, 512, JSON_THROW_ON_ERROR);
             } catch (JsonException $e) {
-                // Fallback to default values if config can't be parsed
-                self::$config = $this->getDefaultConfig();
-                echo "Warning: Could not parse config file. Using default values.\n";
+                die("Error: Could not parse models.json config file. Please check its format.\n");
             }
         } else {
-            // Use default values if config file doesn't exist
-            self::$config = $this->getDefaultConfig();
+            die("Error: Configuration file models.json not found. Please create it in the config directory.\n");
         }
-    }
-    
-    private function getDefaultConfig(): array
-    {
-        return [
-            'models' => [
-                'default' => self::MODEL,
-                'evaluation' => self::SUPERMODEL,
-                'search' => self::SEARCHMODEL,
-                'thinking' => self::THINKING,
-                'thinking_advanced' => self::THINKING_SUPERMODEL
-            ],
-            'api' => [
-                'endpoint' => self::API,
-                'timeout_ms' => 120000
-            ],
-            'generation' => [
-                'max_tokens' => 1200,
-                'max_completion_tokens' => 10000,
-                'default_temperature' => 0.2
-            ],
-            'execution' => [
-                'max_attempts' => 10,
-                'target_score' => 10
-            ]
-        ];
     }
 
     public function send(
@@ -152,10 +109,8 @@ final class GPT
 
         $curl = curl_init();
 
-        $file = match (true) {
-            default => __DIR__ . '/../../config/openai.txt',
-        };
-        $api = self::$config['api']['endpoint'] ?? self::API;
+        $file = __DIR__ . '/../../config/openai.txt';
+        $api = self::$config['api']['endpoint'];
 
         curl_setopt_array(
             $curl,
@@ -169,7 +124,7 @@ final class GPT
                     'Content-Type: application/json',
                     'Authorization: Bearer ' . trim((string) file_get_contents($file)),
                 ],
-                CURLOPT_CONNECTTIMEOUT_MS => self::$config['api']['timeout_ms'] ?? 0,
+                CURLOPT_CONNECTTIMEOUT_MS => self::$config['api']['timeout_ms'],
             ]
         );
 

@@ -15,8 +15,8 @@ final class Evaluator
 
     public function __construct()
     {
-        // Use the supermodel for evaluation to ensure high-quality assessment
-        $this->evaluatorGpt = new GPT(GPT::SUPERMODEL);
+        // Use the evaluation model for high-quality assessment
+        $this->evaluatorGpt = new GPT('evaluation');
     }
 
     /**

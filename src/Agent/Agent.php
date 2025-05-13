@@ -21,40 +21,27 @@ final class Agent
 
     public function __construct()
     {
-        $this->gpt = new GPT();
-        $this->searchGpt = new GPT(GPT::SEARCHMODEL);
-        $this->thinkingGpt = new GPT(GPT::THINKING);
+        $this->loadConfig();
+        $this->gpt = new GPT('default');
+        $this->searchGpt = new GPT('search');
+        $this->thinkingGpt = new GPT('thinking');
         $this->memory = new Memory();
         $this->evaluator = new Evaluator();
-        $this->loadConfig();
     }
-    
+
     private function loadConfig(): void
     {
         $configFile = __DIR__ . '/../../config/models.json';
-        
+
         if (file_exists($configFile)) {
             try {
                 $jsonConfig = file_get_contents($configFile);
                 $this->config = json_decode($jsonConfig, true, 512, JSON_THROW_ON_ERROR);
             } catch (\JsonException $e) {
-                // Fallback to default values
-                $this->config = [
-                    'execution' => [
-                        'max_attempts' => 10,
-                        'target_score' => 10
-                    ]
-                ];
-                echo "Warning: Could not parse config file. Using default execution values.\n";
+                die("Error: Could not parse models.json config file. Please check its format.\n");
             }
         } else {
-            // Use default values if config file doesn't exist
-            $this->config = [
-                'execution' => [
-                    'max_attempts' => 10,
-                    'target_score' => 10
-                ]
-            ];
+            die("Error: Configuration file models.json not found. Please create it in the config directory.\n");
         }
     }
 
@@ -72,8 +59,8 @@ final class Agent
         $this->memory->storeTask($task);
         $completionScore = 0;
         $attempts = 0;
-        $maxAttempts = $this->config['execution']['max_attempts'] ?? 10; // Get from config or use default
-        $targetScore = $this->config['execution']['target_score'] ?? 10; // Get from config or use default
+        $maxAttempts = $this->config['execution']['max_attempts'];
+        $targetScore = $this->config['execution']['target_score'];
 
         while ($completionScore < $targetScore && $attempts < $maxAttempts) {
             $attempts++;
@@ -97,10 +84,12 @@ final class Agent
 
             // Evaluate current solution
             $completionScore = $this->evaluator->evaluateTaskCompletion($task, $this->memory);
-            echo "Current evaluation score: $completionScore/$targetScore\n";
+            $completionProgressPercent = ($completionScore / $targetScore) * 100;
+            // echo "Current evaluation score: $completionScore/$targetScore\n";
+            echo "Current progress: $completionProgressPercent%\n";
 
             if ($completionScore < $targetScore) {
-                echo "Task not yet complete. Refining approach...\n";
+                echo "Not yet complete. Continuing...\n";
                 // Create feedback for next iteration
                 $feedback = $this->evaluator->generateFeedback($task, $this->memory);
                 $this->memory->storeFeedback($feedback);

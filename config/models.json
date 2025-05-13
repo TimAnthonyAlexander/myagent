@@ -1,17 +1,17 @@
 {
     "models": {
-        "default": "gpt-4.1-mini",
-        "evaluation": "gpt-4.1",
+        "default": "gpt-4.1",
+        "evaluation": "gpt-4.1-mini",
         "search": "gpt-4o-mini-search-preview",
         "thinking": "o4-mini",
-        "thinking_advanced": "o3-mini"
+        "thinking_advanced": "o4-mini"
     },
     "api": {
         "endpoint": "https://api.openai.com/v1/chat/completions",
         "timeout_ms": 120000
     },
     "generation": {
-        "max_tokens": 1200,
+        "max_tokens": 2200,
         "max_completion_tokens": 20000,
         "default_temperature": 0.2
     },

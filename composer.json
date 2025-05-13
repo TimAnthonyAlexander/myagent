@@ -11,5 +11,8 @@
             "email": "info@timanthonyalexander.de"
         }
     ],
-    "require": {}
+    "require": {
+        "league/commonmark": "^2.7",
+        "dompdf/dompdf": "^3.1"
+    }
 }

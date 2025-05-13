@@ -9,6 +9,7 @@ use TimAlexander\Myagent\Memory\Memory;
 use TimAlexander\Myagent\Task\Task;
 use TimAlexander\Myagent\Evaluator\Evaluator;
 use TimAlexander\Myagent\GPTMessage\GPTMessageModel;
+use TimAlexander\Myagent\PDF\PDFService;
 
 final class Agent
 {
@@ -17,6 +18,7 @@ final class Agent
     private GPT $thinkingGpt;
     private Memory $memory;
     private Evaluator $evaluator;
+    private PDFService $pdfService;
     private array $config;
     private bool $conversationActive = false;
 
@@ -28,6 +30,7 @@ final class Agent
         $this->thinkingGpt = new GPT('thinking');
         $this->memory = new Memory();
         $this->evaluator = new Evaluator();
+        $this->pdfService = new PDFService();
     }
 
     private function loadConfig(): void
@@ -243,6 +246,15 @@ final class Agent
         );
 
         $this->gpt->send($finalPrompt);
-        return $this->gpt->response->content;
+        $finalReport = $this->gpt->response->content;
+        
+        // Save the report as a PDF
+        $title = "Report: " . $task->getDescription();
+        $fileName = "task_report_" . md5($task->getDescription());
+        $pdfPath = $this->pdfService->convertAndSave($finalReport, $title, $fileName);
+        
+        echo "Report saved as PDF: $pdfPath\n";
+        
+        return $finalReport;
     }
 }

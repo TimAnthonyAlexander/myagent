@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace TimAlexander\Myagent\PDF;
 
 use League\CommonMark\CommonMarkConverter;
+use League\CommonMark\Extension\Table\TableExtension;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
@@ -16,7 +17,10 @@ final class PDFService
 
     public function __construct(string $reportsDirectory = 'reports')
     {
-        $this->converter = new CommonMarkConverter();
+        $this->converter = new CommonMarkConverter(
+            ['html_input' => 'allow', 'allow_unsafe_links' => false],
+            [new TableExtension()]
+        );
         
         $options = new Options();
         $options->set('defaultFont', 'Helvetica');
@@ -56,6 +60,8 @@ final class PDFService
                 h1 { text-align: center; margin-bottom: 30px; }
                 pre { background-color: #f5f5f5; padding: 10px; border-radius: 4px; }
                 code { font-family: monospace; }
+                table { border-collapse: collapse; width: 100%; }
+                table, th, td { border: 1px solid #000; padding: 4px; }
             </style>
         </head>
         <body>

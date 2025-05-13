@@ -14,6 +14,7 @@ MyAgent is a sophisticated PHP-based autonomous agent that uses recursive intell
 - **Self-Evaluation**: Objectively scores its own solutions on a 0-10 scale
 - **Feedback Loop**: Generates constructive feedback to guide improvement
 - **Persistence**: Continues refining until reaching a perfect score or maximum attempts
+- **PDF Reports**: Automatically generates and saves final reports as PDF files
 - **Configurable**: Easily customize models and settings through configuration file
 
 ## 🚀 Installation
@@ -56,6 +57,8 @@ php public/runagent.php
 Enter task description: Create a Python script to analyze Twitter sentiment
 ```
 
+The agent will save the final report as a PDF in the `reports` folder.
+
 ## ⚙️ Configuration
 
 MyAgent uses a configuration file (`config/models.json`) to customize its behavior:
@@ -63,24 +66,24 @@ MyAgent uses a configuration file (`config/models.json`) to customize its behavi
 ```json
 {
   "models": {
-    "default": "gpt-4.1-mini",     // Main processing model
-    "evaluation": "gpt-4.1",       // Solution evaluation model
+    "default": "gpt-4.1",              // Main processing model
+    "evaluation": "gpt-4.1-mini",      // Solution evaluation model
     "search": "gpt-4o-mini-search-preview", // Information gathering model
-    "thinking": "o4-mini",         // Solution development model
-    "thinking_advanced": "o1"      // Advanced solution development
+    "thinking": "o4-mini",             // Solution development model
+    "thinking_advanced": "o4-mini"     // Advanced solution development
   },
   "api": {
     "endpoint": "https://api.openai.com/v1/chat/completions",
     "timeout_ms": 120000
   },
   "generation": {
-    "max_tokens": 1200,            // Max tokens for standard responses
-    "max_completion_tokens": 10000, // Max tokens for thinking models
-    "default_temperature": 0.2     // Lower = more deterministic responses
+    "max_tokens": 2200,                // Max tokens for standard responses
+    "max_completion_tokens": 20000,    // Max tokens for thinking models
+    "default_temperature": 0.2         // Lower = more deterministic responses
   },
   "execution": {
-    "max_attempts": 10,            // Maximum solution refinement attempts
-    "target_score": 10             // Target score (0-10) to consider task complete
+    "max_attempts": 5,                 // Maximum solution refinement attempts
+    "target_score": 9                  // Target score (0-10) to consider task complete
   }
 }
 ```
@@ -100,6 +103,7 @@ You can adjust these settings to customize:
 5. **Feedback**: Generates specific improvement suggestions if needed
 6. **Iteration**: Repeats the process, refining the solution until reaching a perfect score or maximum attempts
 7. **Final Output**: Delivers the highest quality solution
+8. **PDF Generation**: Saves the final report as a PDF in the reports folder
 
 ## 📋 Example Tasks
 
@@ -127,6 +131,12 @@ You can adjust these settings to customize:
                          ▼
 ┌─────────────────────────────────────────────────┐
 │                 Final Response                   │
+└─────────────────────────────────────────────────┘
+                         │
+                         │
+                         ▼
+┌─────────────────────────────────────────────────┐
+│                   PDF Report                     │
 └─────────────────────────────────────────────────┘
 ```
 

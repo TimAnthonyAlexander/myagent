@@ -9,11 +9,7 @@ MyAgent is a sophisticated PHP-based autonomous agent that uses recursive intell
 ## ✨ Features
 
 - **Iterative Refinement**: Repeatedly improves solutions until achieving high confidence scores
-- **Multi-Model Intelligence**: Uses specialized GPT models for different cognitive functions:
-  - `gpt-4.1-mini`: Main processing
-  - `gpt-4.1`: Evaluation and critical assessment  
-  - `gpt-4o-mini-search-preview`: Information gathering
-  - `o4-mini`: Solution development
+- **Multi-Model Intelligence**: Uses specialized GPT models for different cognitive functions
 - **Memory Management**: Maintains context across iterations with intelligent memory system
 - **Self-Evaluation**: Objectively scores its own solutions on a 0-10 scale
 - **Feedback Loop**: Generates constructive feedback to guide improvement

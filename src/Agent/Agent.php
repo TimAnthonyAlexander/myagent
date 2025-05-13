@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TimAlexander\Myagent\Agent;
 
+use stdClass;
 use TimAlexander\Myagent\GPT\GPT;
 use TimAlexander\Myagent\Memory\Memory;
 use TimAlexander\Myagent\Task\Task;
@@ -23,7 +24,7 @@ final class Agent
     private bool $conversationActive = false;
     private string $apiKey = '';
 
-    public function __construct(?string $apiKey = null)
+    public function __construct(?string $apiKey = null, private bool $interactive = false)
     {
         $this->loadConfig();
 
@@ -98,22 +99,26 @@ final class Agent
         }
     }
 
-    public function run(?string $taskDescription = null, ?string $context = null): void
+    public function run(?string $taskDescription = null, ?string $context = null): stdClass
     {
-        if ($taskDescription === null) {
-            // Read from stdin if no task provided
+        if ($taskDescription === null && $this->interactive) {
             echo "Enter task description: ";
             $taskDescription = trim(fgets(STDIN));
+        } elseif ($taskDescription === null) {
+            die("Error: No task description provided. Please provide a task description.\n");
         }
 
         $task = new Task($taskDescription);
-        echo "Starting task: {$task->getDescription()}\n";
+        if ($this->interactive) {
+            echo "Starting task: {$task->getDescription()}\n";
+        }
 
         $this->memory->storeTask($task);
 
-        // Gather initial context through follow-up questions before starting attempts
         if ($context === null) {
-            $this->gatherInitialTaskContext($task);
+            if ($this->interactive) {
+                $this->gatherInitialTaskContext($task);
+            }
         } else {
             $task->addMetadata('initial_context', $context);
         }
@@ -146,32 +151,54 @@ final class Agent
             $completionScore = $this->evaluator->evaluateTaskCompletion($task, $this->memory);
             $completionProgressPercent = ($completionScore / $targetScore) * 100;
             // echo "Current evaluation score: $completionScore/$targetScore\n";
-            echo "Current progress: $completionProgressPercent%\n";
+
+            if ($this->interactive) {
+                echo "Current progress: $completionProgressPercent%\n";
+            }
 
             if ($completionScore < $targetScore) {
-                echo "Not yet complete. Continuing...\n";
-                // Create feedback for next iteration
+                if ($this->interactive) {
+                    echo "Not yet complete. Continuing...\n";
+                }
+
                 $feedback = $this->evaluator->generateFeedback($task, $this->memory);
                 $this->memory->storeFeedback($feedback);
             }
         }
 
         if ($completionScore >= $targetScore) {
-            echo "\nTask completed successfully!\n";
-            $finalResult = $this->generateFinalResult($task);
-            echo $finalResult . "\n";
+            $finalResultObject = $this->generateFinalResult($task);
+            $finalResult = $finalResultObject->report;
+
+            if ($this->interactive) {
+                echo $finalResult . "\n";
+            }
         } else {
-            echo "\nReached maximum attempts. Best solution so far:\n";
             $bestSolution = $this->memory->getBestApproach();
-            echo $bestSolution . "\n";
+
+            if ($this->interactive) {
+                echo $bestSolution . "\n";
+            }
         }
 
-        // Enable follow-up conversation after task completion
-        $this->startFollowUpConversation();
+        if ($this->interactive) {
+            $this->startFollowUpConversation();
+        }
+
+        return (object) [
+            'task' => $task,
+            'memory' => $this->memory,
+            'final_result' => $finalResultObject ?? null,
+            'best_solution' => $bestSolution ?? null,
+        ];
     }
 
     private function gatherInitialTaskContext(Task $task): void
     {
+        if (!$this->interactive) {
+            return;
+        }
+
         echo "\nGenerating preliminary questions to gather more context about your task...\n";
 
         // Create a prompt for thinkingGpt to generate follow-up questions
@@ -289,7 +316,7 @@ final class Agent
         return $message;
     }
 
-    private function generateFinalResult(Task $task): string
+    private function generateFinalResult(Task $task): stdClass
     {
         $finalPrompt = new GPTMessageModel();
         $finalPrompt->role = 'user';
@@ -305,9 +332,16 @@ final class Agent
         $title = "Report: " . $task->getDescription();
         $fileName = "task_report_" . md5($task->getDescription());
         $pdfPath = $this->pdfService->convertAndSave($finalReport, $title, $fileName);
+        $fullPath = __DIR__ . "/../../$pdfPath";
+        $fullPath = realpath($fullPath);
 
-        echo "Report saved as PDF: $pdfPath\n";
+        if ($this->interactive) {
+            echo "Report saved as PDF: $pdfPath\n";
+        }
 
-        return $finalReport;
+        return (object) [
+            'report' => $finalReport,
+            'pdf_path' => $fullPath,
+        ];
     }
 }

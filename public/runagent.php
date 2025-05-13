@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace public;
+namespace PublicScripts;
 
 use TimAlexander\Myagent\Agent\Agent;
 
@@ -25,5 +25,5 @@ if (isset($argv[1]) && !str_starts_with($argv[1], '--api-key=')) {
     }
 }
 
-$agent = new Agent($apiKey);
+$agent = new Agent($apiKey, interactive: true);
 $agent->run($taskDescription);

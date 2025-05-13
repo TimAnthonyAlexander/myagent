@@ -98,7 +98,7 @@ final class Agent
         }
     }
 
-    public function run(?string $taskDescription = null): void
+    public function run(?string $taskDescription = null, ?string $context = null): void
     {
         if ($taskDescription === null) {
             // Read from stdin if no task provided
@@ -112,7 +112,11 @@ final class Agent
         $this->memory->storeTask($task);
 
         // Gather initial context through follow-up questions before starting attempts
-        $this->gatherInitialTaskContext($task);
+        if ($context === null) {
+            $this->gatherInitialTaskContext($task);
+        } else {
+            $task->addMetadata('initial_context', $context);
+        }
 
         $completionScore = 0;
         $attempts = 0;

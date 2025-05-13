@@ -82,9 +82,28 @@ $agent = new Agent('your-openai-api-key');
 // Or set it later
 // $agent->setApiKey('your-openai-api-key');
 
-// Run a task
+// Run a task with automatic context gathering
 $agent->run("Generate a comprehensive marketing plan for a new mobile app");
+
+// Or provide context directly
+$context = "The app is a fitness tracker targeting young professionals. Budget is $50k for marketing. Need to focus on social media and influencer marketing.";
+$agent->run("Generate a comprehensive marketing plan for a new mobile app", $context);
 ```
+
+When you run a task, the agent will:
+
+1. If no context is provided:
+   - Ask you clarifying questions to gather more context about your task
+   - You'll need to provide answers to these questions (they help the agent understand your requirements better)
+2. If context is provided:
+   - Skip the interactive questions phase
+   - Use the provided context directly
+3. The agent will then process your task through multiple iterations:
+   - Search for relevant information
+   - Develop solution approaches
+   - Evaluate and refine the solution
+   - Generate a final comprehensive report
+4. The final report will be saved as a PDF in the `reports` directory
 
 ### Command Line
 
@@ -105,7 +124,15 @@ php public/runagent.php
 Enter task description: Create a Python script to analyze Twitter sentiment
 ```
 
-The agent will save the final report as a PDF in the `reports` folder.
+After entering your task, the agent will:
+1. Ask you clarifying questions about your requirements
+2. Wait for your answers (type your response and press Enter twice when done)
+3. Process the task and generate a solution
+4. Save the final report as a PDF in the `reports` folder
+
+### Follow-up Questions
+
+After the task is completed, you can ask follow-up questions about the solution. The agent maintains context from the original task and can provide additional insights or clarifications. Type 'exit' to end the conversation.
 
 ## ⚙️ Configuration
 

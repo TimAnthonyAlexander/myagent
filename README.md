@@ -1,11 +1,12 @@
-# MyAgent: Intelligent Task-Solving Agent
+# MyAgent: PHP Programmatic GPT DeepResearch Agent
 
 ![MyAgent Banner](https://img.shields.io/badge/MyAgent-Intelligent%20PHP%20Agent-blue)
 ![PHP Version](https://img.shields.io/badge/PHP-8.1%2B-purple)
 ![License](https://img.shields.io/badge/License-MIT-green)
 [![Packagist](https://img.shields.io/badge/Packagist-tim.alexander%2Fmyagent-blue)](https://packagist.org/packages/tim.alexander/myagent)
 
-MyAgent is a sophisticated PHP-based autonomous agent that uses recursive intelligence and iterative refinement to solve complex tasks. Powered by OpenAI's GPT models, it combines search, thinking, evaluation, and memory to produce high-quality solutions.
+MyAgent is a sophisticated PHP-based deep-research agent that uses recursive intelligence and iterative refinement to solve complex tasks. 
+Powered by OpenAI's GPT models, it combines search, thinking, evaluation, and memory to produce high-quality solutions.
 
 ## ✨ Features
 

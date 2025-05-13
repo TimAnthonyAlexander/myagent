@@ -148,7 +148,7 @@ final class Agent
 
             // Evaluate current solution
             $completionScore = $this->evaluator->evaluateTaskCompletion($task, $this->memory);
-            $completionProgressPercent = ($completionScore / $targetScore) * 100;
+            $completionProgressPercent = round(min(100, ($completionScore / $targetScore) * 100));
             // echo "Current evaluation score: $completionScore/$targetScore\n";
 
             if ($this->interactive) {

@@ -19,6 +19,11 @@ final class Evaluator
         $this->evaluatorGpt = new GPT('evaluation');
     }
 
+    public function setApiKey(string $apiKey): void
+    {
+        $this->evaluatorGpt->setApiKey($apiKey);
+    }
+
     /**
      * Evaluates the current task completion status and returns a score from 0-10
      */
@@ -113,4 +118,3 @@ EOT;
         return $message;
     }
 }
-

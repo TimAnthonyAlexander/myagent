@@ -13,7 +13,7 @@ set_time_limit(0);
 final class GPT
 {
     private static array $config;
-    
+
     public GPTMessageModel $response;
     public string $md5;
 
@@ -30,19 +30,21 @@ final class GPT
         if (empty(self::$config)) {
             $this->loadConfig();
         }
-        
+
         // Map model identifier to actual model from config
-        if ($model === 'default' || $model === 'evaluation' || 
-            $model === 'search' || $model === 'thinking' || 
-            $model === 'thinking_advanced') {
+        if (
+            $model === 'default' || $model === 'evaluation' ||
+            $model === 'search' || $model === 'thinking' ||
+            $model === 'thinking_advanced'
+        ) {
             $this->model = self::$config['models'][$model];
         }
     }
-    
+
     private function loadConfig(): void
     {
         $configFile = __DIR__ . '/../../config/models.json';
-        
+
         if (file_exists($configFile)) {
             try {
                 $jsonConfig = file_get_contents($configFile);
@@ -125,7 +127,6 @@ final class GPT
 
         $api = self::$config['api']['endpoint'];
 
-        // Use API key from instance if set, otherwise try to load from file
         $apiKey = $this->apiKey;
         if (empty($apiKey)) {
             $apiKeyFile = __DIR__ . '/../../config/openai.txt';

@@ -58,6 +58,7 @@ final class Agent
         $this->gpt->setApiKey($apiKey);
         $this->searchGpt->setApiKey($apiKey);
         $this->thinkingGpt->setApiKey($apiKey);
+        $this->evaluator->setApiKey($apiKey);
 
         return $this;
     }

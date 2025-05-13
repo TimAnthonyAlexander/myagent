@@ -31,12 +31,11 @@ final class Agent
         $this->gpt = new GPT('default');
         $this->searchGpt = new GPT('search');
         $this->thinkingGpt = new GPT('thinking');
+        $this->evaluator = new Evaluator();
 
-        // Set API key if provided
         if ($apiKey !== null) {
             $this->setApiKey($apiKey);
         } else {
-            // Try to load from config file
             $this->loadApiKey();
         }
         $this->memory = new Memory();
@@ -54,7 +53,6 @@ final class Agent
     {
         $this->apiKey = $apiKey;
 
-        // Update API key in GPT instances
         $this->gpt->setApiKey($apiKey);
         $this->searchGpt->setApiKey($apiKey);
         $this->thinkingGpt->setApiKey($apiKey);

@@ -16,7 +16,7 @@
         "default_temperature": 0.2
     },
     "execution": {
-        "max_attempts": 10,
-        "target_score": 10
+        "max_attempts": 5,
+        "target_score": 9
     }
 }

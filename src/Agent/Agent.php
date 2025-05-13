@@ -17,6 +17,7 @@ final class Agent
     private GPT $thinkingGpt;
     private Memory $memory;
     private Evaluator $evaluator;
+    private array $config;
 
     public function __construct()
     {
@@ -25,6 +26,36 @@ final class Agent
         $this->thinkingGpt = new GPT(GPT::THINKING);
         $this->memory = new Memory();
         $this->evaluator = new Evaluator();
+        $this->loadConfig();
+    }
+    
+    private function loadConfig(): void
+    {
+        $configFile = __DIR__ . '/../../config/models.json';
+        
+        if (file_exists($configFile)) {
+            try {
+                $jsonConfig = file_get_contents($configFile);
+                $this->config = json_decode($jsonConfig, true, 512, JSON_THROW_ON_ERROR);
+            } catch (\JsonException $e) {
+                // Fallback to default values
+                $this->config = [
+                    'execution' => [
+                        'max_attempts' => 10,
+                        'target_score' => 10
+                    ]
+                ];
+                echo "Warning: Could not parse config file. Using default execution values.\n";
+            }
+        } else {
+            // Use default values if config file doesn't exist
+            $this->config = [
+                'execution' => [
+                    'max_attempts' => 10,
+                    'target_score' => 10
+                ]
+            ];
+        }
     }
 
     public function run(?string $taskDescription = null): void
@@ -41,11 +72,12 @@ final class Agent
         $this->memory->storeTask($task);
         $completionScore = 0;
         $attempts = 0;
-        $maxAttempts = 10; // Safety limit
+        $maxAttempts = $this->config['execution']['max_attempts'] ?? 10; // Get from config or use default
+        $targetScore = $this->config['execution']['target_score'] ?? 10; // Get from config or use default
 
-        while ($completionScore < 10 && $attempts < $maxAttempts) {
+        while ($completionScore < $targetScore && $attempts < $maxAttempts) {
             $attempts++;
-            echo "\nAttempt $attempts\n";
+            echo "\nAttempt $attempts of $maxAttempts\n";
 
             // Search for relevant information
             $searchPrompt = $this->createSearchPrompt($task, $this->memory);
@@ -65,9 +97,9 @@ final class Agent
 
             // Evaluate current solution
             $completionScore = $this->evaluator->evaluateTaskCompletion($task, $this->memory);
-            echo "Current evaluation score: $completionScore/10\n";
+            echo "Current evaluation score: $completionScore/$targetScore\n";
 
-            if ($completionScore < 10) {
+            if ($completionScore < $targetScore) {
                 echo "Task not yet complete. Refining approach...\n";
                 // Create feedback for next iteration
                 $feedback = $this->evaluator->generateFeedback($task, $this->memory);
@@ -75,7 +107,7 @@ final class Agent
             }
         }
 
-        if ($completionScore >= 10) {
+        if ($completionScore >= $targetScore) {
             echo "\nTask completed successfully!\n";
             $finalResult = $this->generateFinalResult($task);
             echo $finalResult . "\n";

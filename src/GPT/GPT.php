@@ -49,7 +49,7 @@ final class GPT
             try {
                 $jsonConfig = file_get_contents($configFile);
                 self::$config = json_decode($jsonConfig, true, 512, JSON_THROW_ON_ERROR);
-            } catch (JsonException $e) {
+            } catch (JsonException) {
                 die("Error: Could not parse models.json config file. Please check its format.\n");
             }
         } else {

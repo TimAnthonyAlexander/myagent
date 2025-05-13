@@ -39,7 +39,6 @@ final class Agent
             $this->loadApiKey();
         }
         $this->memory = new Memory();
-        $this->evaluator = new Evaluator();
         $this->pdfService = new PDFService();
     }
 

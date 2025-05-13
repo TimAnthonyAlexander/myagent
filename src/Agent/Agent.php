@@ -238,7 +238,7 @@ final class Agent
         $finalPrompt = new GPTMessageModel();
         $finalPrompt->role = 'user';
         $finalPrompt->content = sprintf(
-            "Create a final, comprehensive response for the task: %s\nUse all gathered information and approaches.",
+            "Create a final, comprehensive response and EXTENSIVE report for the task: %s\nUse all gathered information and approaches. Write it in a professional tone, suitable for a technical audience.",
             $task->getDescription()
         );
 

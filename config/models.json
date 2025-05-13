@@ -1,7 +1,7 @@
 {
     "models": {
-        "default": "gpt-4.1",
-        "evaluation": "gpt-4.1-mini",
+        "default": "gpt-4.1-nano",
+        "evaluation": "gpt-4.1-nano",
         "search": "gpt-4o-mini-search-preview",
         "thinking": "o4-mini",
         "thinking_advanced": "o4-mini"

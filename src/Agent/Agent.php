@@ -149,35 +149,22 @@ final class Agent
             // Evaluate current solution
             $completionScore = $this->evaluator->evaluateTaskCompletion($task, $this->memory);
             $completionProgressPercent = round(min(100, ($completionScore / $targetScore) * 100));
-            // echo "Current evaluation score: $completionScore/$targetScore\n";
 
             if ($this->interactive) {
-                echo "Current progress: $completionProgressPercent%\n";
+                echo "$completionScore/$targetScore ($completionProgressPercent%)\n";
             }
 
-            if ($completionScore < $targetScore) {
-                if ($this->interactive) {
-                    echo "Not yet complete. Continuing...\n";
-                }
-
+            if ($completionScore < $targetScore && $attempts < $maxAttempts) {
                 $feedback = $this->evaluator->generateFeedback($task, $this->memory);
                 $this->memory->storeFeedback($feedback);
             }
         }
 
-        if ($completionScore >= $targetScore) {
-            $finalResultObject = $this->generateFinalResult($task);
-            $finalResult = $finalResultObject->report;
+        $finalResultObject = $this->generateFinalResult($task);
+        $finalResult = $finalResultObject->report;
 
-            if ($this->interactive) {
-                echo $finalResult . "\n";
-            }
-        } else {
-            $bestSolution = $this->memory->getBestApproach();
-
-            if ($this->interactive) {
-                echo $bestSolution . "\n";
-            }
+        if ($this->interactive) {
+            echo $finalResult . "\n";
         }
 
         if ($this->interactive) {
@@ -187,8 +174,9 @@ final class Agent
         return (object) [
             'task' => $task,
             'memory' => $this->memory,
-            'final_result' => $finalResultObject ?? null,
-            'best_solution' => $bestSolution ?? null,
+            'final_result' => $finalResultObject,
+            'best_score' => $completionScore,
+            'max_attempts_reached' => $attempts >= $maxAttempts,
         ];
     }
 
@@ -317,11 +305,45 @@ final class Agent
 
     private function generateFinalResult(Task $task): stdClass
     {
+        $searchResults = $this->memory->getRelevantContextSummary();
+        $allApproaches = $this->memory->getAllApproaches();
+        $approachSummary = "APPROACHES DEVELOPED:\n";
+
+        // Include at least the last 3 approaches, or all if less than 3
+        $relevantApproaches = array_slice($allApproaches, -min(3, count($allApproaches)));
+        foreach ($relevantApproaches as $index => $approach) {
+            $approachSummary .= "Approach " . ($index + 1) . ":\n" . $approach['content'] . "\n\n";
+        }
+
+        // Include feedback history
+        $allFeedback = $this->memory->getAllFeedback();
+        $feedbackSummary = "";
+        if (!empty($allFeedback)) {
+            $feedbackSummary = "FEEDBACK HISTORY:\n";
+            foreach ($allFeedback as $index => $feedback) {
+                $feedbackSummary .= "Feedback " . ($index + 1) . ":\n" . $feedback['content'] . "\n\n";
+            }
+        }
+
         $finalPrompt = new GPTMessageModel();
         $finalPrompt->role = 'user';
         $finalPrompt->content = sprintf(
-            "Create a final, comprehensive response and EXTENSIVE report for the task: %s\nWrite it in the language of the original task mentioned. Use all gathered information and approaches. Write it in a professional tone, suitable for an intelligent audience. Use data and numbers from reports to make it logically sound. Write as much as you know.",
-            $task->getDescription()
+            "Create a final, comprehensive response and EXTENSIVE report for the task: %s
+
+SEARCH FINDINGS:
+%s
+
+%s
+
+%s
+
+Write a complete and comprehensive report addressing all aspects of the task. Use all gathered information and approaches described above. 
+Write it in the language of the original task mentioned. Use a professional tone, suitable for an intelligent audience. 
+Include specific findings, data points, and insights from the approaches. Ensure the report is thorough, well-organized, and addresses all requirements of the task.",
+            $task->getDescription(),
+            $searchResults,
+            $approachSummary,
+            $feedbackSummary
         );
 
         $this->gpt->send($finalPrompt);

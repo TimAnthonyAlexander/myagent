@@ -137,4 +137,9 @@ final class Memory
     {
         return $this->feedback;
     }
+    
+    public function getAllScores(): array
+    {
+        return $this->scores;
+    }
 } 

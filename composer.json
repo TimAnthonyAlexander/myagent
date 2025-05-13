@@ -1,0 +1,15 @@
+{
+    "name": "tim.alexander/myagent",
+    "autoload": {
+        "psr-4": {
+            "TimAlexander\\Myagent\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Tim Anthony Alexander",
+            "email": "info@timanthonyalexander.de"
+        }
+    ],
+    "require": {}
+}

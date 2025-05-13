@@ -75,6 +75,7 @@ final class Agent
             $this->gpt->setApiKey($this->apiKey);
             $this->searchGpt->setApiKey($this->apiKey);
             $this->thinkingGpt->setApiKey($this->apiKey);
+            $this->evaluator->setApiKey($this->apiKey);
         } else {
             throw new \RuntimeException(
                 "OpenAI API key not found. Please set it using setApiKey() or create a config/openai.txt file."

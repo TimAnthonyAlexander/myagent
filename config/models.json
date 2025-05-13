@@ -12,7 +12,7 @@
     },
     "generation": {
         "max_tokens": 1200,
-        "max_completion_tokens": 10000,
+        "max_completion_tokens": 20000,
         "default_temperature": 0.2
     },
     "execution": {

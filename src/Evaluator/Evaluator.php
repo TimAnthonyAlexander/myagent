@@ -58,7 +58,7 @@ final class Evaluator
                     // Ensure score increases gradually (max +3 per iteration)
                     $lastScore = end($previousScores)['score'];
                     $maxAllowedIncrease = 3;
-                    $score = min($score, $lastScore + $maxAllowedIncrease);
+                    $score = min(max($score, $lastScore), $lastScore + $maxAllowedIncrease);
                 }
 
                 // Store the score in memory

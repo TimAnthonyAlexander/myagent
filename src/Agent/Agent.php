@@ -116,7 +116,7 @@ final class Agent
 
         if ($context === null) {
             if ($this->interactive) {
-                $this->gatherInitialTaskContext($task);
+                $this->gatherInitialTaskContextInteractive($task);
             }
         } else {
             $task->addMetadata('initial_context', $context);
@@ -180,45 +180,38 @@ final class Agent
         ];
     }
 
-    private function gatherInitialTaskContext(Task $task): void
+    public function gatherFollowUpQuestions(Task $task): string
     {
-        if (!$this->interactive) {
+        $prompt = new GPTMessageModel();
+        $prompt->role = 'user';
+        $prompt->content = sprintf(
+            "Based on this task description: \"%s\"\n\nGenerate at least 5 specific follow-up questions that would help clarify important details, scope, requirements, or context needed to effectively complete this task. These questions should help gather essential information that might be missing from the initial description.",
+            $task->getDescription()
+        );
+        $this->thinkingGpt->send($prompt);
+        return $this->thinkingGpt->response->content;
+    }
+
+    public function gatherInitialTaskContextInteractive(Task $task): void
+    {
+        if (! $this->interactive) {
             return;
         }
 
         echo "\nGenerating preliminary questions to gather more context about your task...\n";
+        $questions = $this->gatherFollowUpQuestions($task);
+        echo "\n{$questions}\n\n";
+        echo "Please provide your answers to these questions (send an empty message once done):\n";
 
-        // Create a prompt for thinkingGpt to generate follow-up questions
-        $questionsPrompt = new GPTMessageModel();
-        $questionsPrompt->role = 'user';
-        $questionsPrompt->content = sprintf(
-            "Based on this task description: \"%s\"\n\nGenerate at least 5 specific follow-up questions that would help clarify important details, scope, requirements, or context needed to effectively complete this task. These questions should help gather essential information that might be missing from the initial description.",
-            $task->getDescription()
-        );
-
-        // Get the follow-up questions
-        $this->thinkingGpt->send($questionsPrompt);
-        $questions = $this->thinkingGpt->response->content;
-
-        // Display the questions to the user
-        echo "\n$questions\n\n";
-
-        // Ask the user to provide answers
-        echo "Please provide your answers to these questions (type your response and press Enter):\n";
-        $userAnswers = "";
-
-        // Read multiline input until an empty line is entered
-        echo "> ";
-        while (($line = trim(fgets(STDIN))) !== "") {
+        $userAnswers = '';
+        echo '> ';
+        while (($line = trim(fgets(STDIN))) !== '') {
             $userAnswers .= $line . "\n";
-            echo "> ";
+            echo '> ';
         }
 
-        // Store this additional context in memory
-        $contextWithAnswers = "FOLLOW-UP QUESTIONS:\n$questions\n\nUSER ANSWERS:\n$userAnswers";
-        $this->memory->storeSearchResults($contextWithAnswers);
-
-        // Update task metadata with this additional context
+        $context = "FOLLOW-UP QUESTIONS:\n{$questions}\n\nUSER ANSWERS:\n{$userAnswers}";
+        $this->memory->storeSearchResults($context);
         $task->addMetadata('initial_context_questions', $questions);
         $task->addMetadata('initial_context_answers', $userAnswers);
 

@@ -337,7 +337,6 @@ SEARCH FINDINGS:
 %s
 
 Write a complete and comprehensive report addressing all aspects of the task. Use all gathered information and approaches described above. 
-Write it in the language of the original task mentioned. Use a professional tone, suitable for an intelligent audience. 
 Include specific findings, data points, and insights from the approaches. Ensure the report is thorough, well-organized, and addresses all requirements of the task.
             ",
             $task->getDescription(),
@@ -347,7 +346,7 @@ Include specific findings, data points, and insights from the approaches. Ensure
             $feedbackSummary
         );
 
-        $this->gpt->send($finalPrompt, 'You are a professional report writer, a PHP Deep Research agent. You have searched for information, generated approaches, and received feedback. Now, you need to create a final report that summarizes everything and provides a comprehensive solution to the task. Your report should be well-structured, clear, and informative. Use the information provided in the prompt to create a detailed and professional report. Write it in the language of the original task. NOT in the language of the search results but of the original task. If you are unsure about the language, write it in English.');
+        $this->gpt->send($finalPrompt, 'You are a professional report writer, a PHP Deep Research agent. You have searched for information, generated approaches, and received feedback. Now, you need to create a final report that summarizes everything and provides a comprehensive solution to the task. Your report should be well-structured, clear, and informative. Use the information provided in the prompt to create a detailed and professional report. Write it in English.');
         $finalReport = $this->gpt->response->content;
 
         $title = "Report: " . $task->getDescription();

@@ -346,10 +346,9 @@ Include specific findings, data points, and insights from the approaches. Ensure
             $feedbackSummary
         );
 
-        $this->gpt->send($finalPrompt);
+        $this->gpt->send($finalPrompt, 'You are a professional report writer, a PHP Deep Research agent. You have searched for information, generated approaches, and received feedback. Now, you need to create a final report that summarizes everything and provides a comprehensive solution to the task. Your report should be well-structured, clear, and informative. Use the information provided in the prompt to create a detailed and professional report. Write it in the language of the original formulated task.');
         $finalReport = $this->gpt->response->content;
 
-        // Save the report as a PDF
         $title = "Report: " . $task->getDescription();
         $fileName = "task_report_" . md5($task->getDescription());
         $pdfPath = $this->pdfService->convertAndSave($finalReport, $title, $fileName);

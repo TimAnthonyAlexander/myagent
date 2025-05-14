@@ -20,19 +20,19 @@ final class PDFService
         // create converter first
         $this->converter = new CommonMarkConverter([
             'html_input'        => 'allow',
-            'allow_unsafe_links'=> false,
+            'allow_unsafe_links' => false,
         ]);
 
         // then register the extension
         $this->converter->getEnvironment()->addExtension(new TableExtension());
-        
+
         $options = new Options();
         $options->set('defaultFont', 'Helvetica');
         $options->set('isRemoteEnabled', true);
-        
+
         $this->dompdf = new Dompdf($options);
         $this->reportsDirectory = $reportsDirectory;
-        
+
         // Create the reports directory if it doesn't exist
         if (!is_dir($this->reportsDirectory)) {
             mkdir($this->reportsDirectory, 0755, true);
@@ -49,10 +49,8 @@ final class PDFService
      */
     public function convertAndSave(string $markdown, string $title, ?string $filename = null): string
     {
-        // Convert markdown to HTML
         $html = $this->converter->convert($markdown);
-        
-        // Create a complete HTML document with title
+
         $fullHtml = <<<HTML
         <!DOCTYPE html>
         <html>
@@ -69,31 +67,30 @@ final class PDFService
             </style>
         </head>
         <body>
-            <h1>{$title}</h1>
             {$html}
         </body>
         </html>
         HTML;
-        
+
         // Load HTML into DOMPDF
         $this->dompdf->loadHtml($fullHtml);
-        
+
         // Set paper size and orientation
         $this->dompdf->setPaper('A4', 'portrait');
-        
+
         // Render PDF
         $this->dompdf->render();
-        
+
         // Generate filename
         $safeFilename = $filename ?? $this->sanitizeFilename($title);
         $pdfPath = $this->reportsDirectory . '/' . $safeFilename . '.pdf';
-        
+
         // Save to file
         file_put_contents($pdfPath, $this->dompdf->output());
-        
+
         return $pdfPath;
     }
-    
+
     /**
      * Create a safe filename from a title
      *
@@ -108,7 +105,8 @@ final class PDFService
         $filename = strtolower($filename);
         // Add timestamp to ensure uniqueness
         $filename .= '_' . date('Y-m-d_H-i-s');
-        
+
         return $filename;
     }
-} 
+}
+

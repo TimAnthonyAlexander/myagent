@@ -180,13 +180,13 @@ final class Agent
         ];
     }
 
-    public function gatherFollowUpQuestions(Task $task): string
+    public function gatherFollowUpQuestions(string $description): string
     {
         $prompt = new GPTMessageModel();
         $prompt->role = 'user';
         $prompt->content = sprintf(
             "Based on this task description: \"%s\"\n\nGenerate at least 5 specific follow-up questions that would help clarify important details, scope, requirements, or context needed to effectively complete this task. These questions should help gather essential information that might be missing from the initial description.",
-            $task->getDescription()
+            $description,
         );
         $this->thinkingGpt->send($prompt);
         return $this->thinkingGpt->response->content;
@@ -199,7 +199,7 @@ final class Agent
         }
 
         echo "\nGenerating preliminary questions to gather more context about your task...\n";
-        $questions = $this->gatherFollowUpQuestions($task);
+        $questions = $this->gatherFollowUpQuestions($task->getDescription());
         echo "\n{$questions}\n\n";
         echo "Please provide your answers to these questions (send an empty message once done):\n";
 

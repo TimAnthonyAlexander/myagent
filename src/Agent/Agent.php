@@ -12,6 +12,9 @@ use TimAlexander\Myagent\Evaluator\Evaluator;
 use TimAlexander\Myagent\GPTMessage\GPTMessageModel;
 use TimAlexander\Myagent\PDF\PDFService;
 
+ini_set('memory_limit', '512M');
+ini_set('max_execution_time', '0');
+
 final class Agent
 {
     private GPT $gpt;
